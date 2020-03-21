@@ -26,6 +26,11 @@ public class MeetingOrganizer {
         }
     }
 
+    public static void main(String[] args) throws InvalidUrlException {
+        new MeetingOrganizer().run();
+        //new MeetingOrganizer().generateIndividualLesson("");
+
+    }
 
     void botResponse(String[] userInputWords, Scanner in) throws MoException, DateTimeParseException, NumberFormatException {
         String userCommand = userInputWords[0];
@@ -119,6 +124,48 @@ public class MeetingOrganizer {
     }
 
 
+    private void setMembersSchedule(Scanner in) {
+        TextUI.membersMsg();
+
+        //TODO handle exception if user doesn't input integer or input too many members.
+        Integer membersN = Integer.parseInt(in.nextLine());
+        for (int i = 0; i < membersN; ++i) {
+            String addBlocksSuccessOrNot = "";
+            TeamMember member = new TeamMember(String.valueOf(i)); //TODO change to member's name.
+            do {
+                System.out.println(addBlocksSuccessOrNot);
+                TextUI.enterScheduleMsg(String.valueOf(i + 1));
+                String input = in.nextLine();
+                String[] scheduleDetails = input.split(" ", 5);
+                String scheduleName = scheduleDetails[0];
+                Integer startDay = Integer.parseInt(scheduleDetails[1]);
+                String startTime = scheduleDetails[2];
+                Integer endDay = Integer.parseInt(scheduleDetails[3]);
+                String endTime = scheduleDetails[4];
+                addBlocksSuccessOrNot = member.addBusyBlocks(scheduleName, startDay, startTime, endDay, endTime);
+            } while (!addBlocksSuccessOrNot.equals("SUCCESS"));
+            myScheduleList.add(member);
+        }
+        myScheduleHandler = new ScheduleHandler(myScheduleList);
+        myMasterSchedule = myScheduleHandler.getMasterSchedule();
+        TextUI.printTimetable(myMasterSchedule);
+        myScheduleHandler.printFreeTimings();
+    }
+
+    public void generateIndividualLesson(String webLink) throws InvalidUrlException {
+        LessonsGenerator myLessonGenerator = new LessonsGenerator(webLink);
+        myLessonGenerator.generate();
+        ArrayList<String[]> myLessonDetails = myLessonGenerator.getLessonDetails();
+
+        for (int k = 0; k < myLessonDetails.size(); k++) {
+            for (int j = 0; j < myLessonDetails.get(k).length; j++) {
+                System.out.print(myLessonDetails.get(k)[j] + " ");
+            }
+            System.out.print("\n");
+        }
+    }
+
+
     /**
      * Main entry-point for the application.
      */
@@ -148,10 +195,6 @@ public class MeetingOrganizer {
             }
         }
         TextUI.exitMsg();
-    }
-  
-    public static void main(String[] args) {
-        new MeetingOrganizer().run();
     }
 
 }
